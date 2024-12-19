@@ -1,0 +1,456 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id                      Int                    @id @default(autoincrement())
+  wallet                  String?
+  galxeDiscordId          String?                @map("galxe_discord_id")
+  galxeTwitterId          String?                @map("galxe_twitter_id")
+  galxeTelegramId         String?                @map("galxe_telegram_id")
+  galxeEmail              String?                @map("galxe_email")
+  username                String?                @unique
+  providerPlayerId        String                 @unique @map("providerPlayerId")
+  createdAt               DateTime               @default(now()) @map("created_at")
+  updatedAt               DateTime               @default(now()) @updatedAt @map("updated_at")
+  galxeId                 String?                @map("galxe_id")
+  origin                  String                 @default("email")
+  supabaseEmail           String?                @map("supabase_email")
+  avatarUrl               String?                @map("avatar_url")
+  status                  PLAYER_STATUS          @default(PENDING_PASSWORD)
+  inviteCode              String?                @unique @map("invite_code")
+  reason                  String?                 
+  notifications           NotificationRegistry[]
+  PlayerSeasonPoints      PlayerSeasonPoints[]
+  tasks                   Task[]
+  InvitedPlayers          InvitedPlayers[]       @relation("invited-playes-relation")
+  InvitingPlayers         InvitedPlayers[]       @relation("inviting-playes-relation")
+  PlayerInviteCodes       PlayerInviteCodes[]
+  PlayerTotalPoints       PlayerTotalPoints?
+  PlayerRegisteredDevices PlayerRegisteredDevices[]
+
+  @@index([id])
+  @@index([username])
+  @@index([providerPlayerId])
+  @@index([inviteCode])
+  @@index([createdAt])
+  @@index([status])
+  @@index([wallet])
+  @@map("tb_players")
+}
+
+model Task {
+  id            Int       @id @default(autoincrement())
+  taskId        String?   @map("task_id")
+  name          String
+  description   String
+  completedDate DateTime? @default(now()) @map("completed_date")
+  systemId      String    @map("system_id")
+  points        Int
+  seasonId      Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  Player           Player? @relation(fields: [providerPlayerId], references: [providerPlayerId], onDelete: Cascade)
+  providerPlayerId String  @map("provider_player_id")
+
+  @@index([id])
+  @@index([providerPlayerId])
+  @@index([taskId])
+  @@index([name])
+  @@index([systemId])
+  @@index([completedDate])
+  @@index([seasonId])
+  @@index([createdAt])
+  @@map("tb_tasks")
+}
+
+model System {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String
+  systemId    String        @unique @map("system_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at")
+  status      SYSTEM_STATUS @default(PENDING)
+
+  @@index([id])
+  @@index([systemId])
+  @@index([status])
+  @@index([description])
+  @@map("tb_systems")
+}
+
+model Announcement {
+  id              Int                          @id @default(autoincrement())
+  title           String
+  message         String
+  startDate       DateTime?                    @map("start_date")
+  endDate         DateTime?                    @map("end")
+  bannerUrl       String?                      @map("banner_url")
+  bannerExtension String?                      @map("banner_extension")
+  createdAt       DateTime                     @default(now()) @map("created_at")
+  updatedAt       DateTime                     @default(now()) @updatedAt @map("updated_at")
+  tier            Int[]
+  visualizations  AnnouncementVisualizations[]
+
+  @@index([id])
+  @@index([title])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([tier])
+  @@index([createdAt])
+  @@map("tb_announcements")
+}
+
+model AnnouncementVisualizations {
+  id               Int          @id @default(autoincrement())
+  Announcement     Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  announcementId   Int
+  providerPlayerId String
+  isRead           Boolean
+  readAt           DateTime
+
+  @@index([id])
+  @@index([providerPlayerId])
+  @@index([announcementId])
+  @@map("tb_annoucement_visualizations")
+}
+
+model Notification {
+  id                       Int                        @id @default(autoincrement())
+  title                    String
+  content                  String
+  startDate                DateTime?                  @map("start_date")
+  endDate                  DateTime?                  @map("end_date")
+  createdAt                DateTime                   @default(now()) @map("created_at")
+  updatedAt                DateTime                   @default(now()) @updatedAt @map("updated_at")
+  tier                     Int[]
+  status                   NOTIFICATON_STATUS         @default(DRAFT)
+  type                     NOTIFICATION_TYPE          @default(MANUAL)
+  notificationsRegistry    NotificationRegistry[]
+  notificationTargetPoints NotificationTargetPoints[]
+
+  @@index([id])
+  @@index([tier])
+  @@map("tb_notifications")
+}
+
+model NotificationAutomaticTemplates {
+  id        Int                         @id @default(autoincrement())
+  type      AUTOMATIC_NOTIFICATION_TYPE @map("type")
+  title     String                      @map("title")
+  content   String                      @map("content")
+  createdAt DateTime                    @default(now()) @map("created_at")
+  updatedAt DateTime                    @default(now()) @updatedAt @map("updated_at")
+  updatedBy String?                     @map("updated_by")
+  active    Boolean                     @default(true)
+
+  @@index([id])
+  @@index([type])
+  @@map("tb_notification_automatic_templates")
+}
+
+model NotificationTargetPoints {
+  id             Int          @id @default(autoincrement())
+  notificationId Int          @map("notification_id")
+  startPoints    Int?         @map("start_points")
+  endPoints      Int?         @map("end_points")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at")
+  notification   Notification @relation(fields: [notificationId], references: [id])
+
+  @@index([id])
+  @@index([notificationId])
+  @@map("tb_notifications_target_points")
+}
+
+model NotificationRegistry {
+  id             Int          @id @default(autoincrement())
+  recipientId    String       @map("recipient_id")
+  origin         String
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at")
+  notificationId Int          @map("notification_id")
+  isRead         Boolean      @default(false) @map("is_read")
+  isDeleted      Boolean      @default(false) @map("is_deleted")
+  readAt         DateTime?    @map("read_at")
+  notification   Notification @relation(fields: [notificationId], references: [id])
+  player         Player       @relation(fields: [recipientId], references: [providerPlayerId], onDelete: Cascade)
+
+  @@index([id])
+  @@index([recipientId])
+  @@index([notificationId])
+  @@map("tb_notifications_registry")
+}
+
+model Season {
+  id           Int                  @id @default(autoincrement())
+  name         String
+  description  String
+  active       Boolean              @default(false)
+  startAt      DateTime             @map("start_at")
+  endAt        DateTime             @map("end_at")
+  createdAt    DateTime             @default(now()) @map("created_at")
+  updatedAt    DateTime             @default(now()) @updatedAt @map("updated_at")
+  PlayerPoints PlayerSeasonPoints[]
+
+  @@index([id])
+  @@index([startAt])
+  @@index([endAt])
+  @@index([name])
+  @@index([active])
+  @@index([createdAt])
+  @@map("tb_seasons")
+}
+
+model PlayerSeasonPoints {
+  id               Int     @id @default(autoincrement())
+  providerPlayerId String  @map("provider_player_id")
+  seasonId         Int     @map("season_id")
+  points           Int
+  tier             Int     @default(3)
+  lastTier         Int     @default(3) @map("last_tier")
+  progress         Decimal @default(0)
+  player           Player  @relation(fields: [providerPlayerId], references: [providerPlayerId], onDelete: Cascade)
+  season           Season  @relation(fields: [seasonId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([id])
+  @@index([points])
+  @@index([tier])
+  @@index([lastTier])
+  @@index([progress])
+  @@index([providerPlayerId])
+  @@index([seasonId])
+  @@map("tb_player_season_points")
+}
+
+model PlayerTotalPoints {
+  id                  Int      @id @default(autoincrement())
+  points              Int
+  tier                Int
+  tierLastUpdatedTime DateTime @default(now()) @map("tier_last_updated_time")
+  progress            Decimal  @default(0)
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+  providerPlayerId String   @unique @map("provider_player_id")
+  player           Player   @relation(fields: [providerPlayerId], references: [providerPlayerId], onDelete: Cascade)
+
+  @@index([id])
+  @@index([points])
+  @@index([tier])
+  @@index([providerPlayerId])
+  @@index([progress])
+  @@map("tb_player_total_points")
+}
+
+model InvitedPlayers {
+  id                       Int    @id @default(autoincrement())
+  invitedPlayer            Player @relation("invited-playes-relation", fields: [invitedProviderPlayerId], references: [providerPlayerId], onDelete: Cascade)
+  invitedProviderPlayerId  String @map("invited_provider_player_id")
+  invitingPlayer           Player @relation("inviting-playes-relation", fields: [invitingProviderPlayerId], references: [providerPlayerId], onDelete: Cascade)
+  invitingProviderPlayerId String @map("inviting_provider_player_id")
+  inviteCode               String @map("invite_code")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([id])
+  @@index([invitedProviderPlayerId])
+  @@index([invitingProviderPlayerId])
+  @@index([createdAt])
+  @@map("tb_invited_players")
+}
+
+model PlayerInviteCodes {
+  id               Int      @id @default(autoincrement())
+  inviteCode       String   @unique @map("invite_code")
+  expiresIn        DateTime @map("expires_in")
+  providerPlayerId String   @map("provider_player_id")
+  player           Player   @relation(fields: [providerPlayerId], references: [providerPlayerId], onDelete: Cascade)
+  acceptedQuantity Int      @default(0) @map("accepted_quantity")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([id])
+  @@index([providerPlayerId])
+  @@index([inviteCode])
+  @@index([acceptedQuantity])
+  @@index([expiresIn])
+  @@map("tb_player_invite_codes")
+}
+
+model ApplicationLogs {
+  id      Int     @id @default(autoincrement())
+  content String
+  level   String
+  origin  String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([id])
+  @@index([level])
+  @@index([origin])
+  @@index([createdAt])
+  @@map("tb_application_logs")
+}
+
+model Campaigns {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  externalId  String    @map("external_id")
+  active      Boolean   @default(true)
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([id])
+  @@index([externalId])
+  @@index([active])
+  @@index([startDate])
+  @@index([endDate])
+  @@map("tb_campaigns")
+}
+
+model PlayerRegisteredDevices {
+  id               Int    @id @default(autoincrement())
+  providerPlayerId String @map("provider_player_id")
+  player           Player @relation(fields: [providerPlayerId], references: [providerPlayerId], onDelete: Cascade)
+  endpoint         String
+  p256dh           String
+  auth             String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@index([id])
+  @@index([providerPlayerId])
+  @@map("tb_player_registered_devices")
+}
+
+model Parameters {
+  id                Int       @id @default(autoincrement())
+  galxeId           String?   @map("galxe_id")
+  userId            String    @unique
+  termsAccepted     Boolean
+  refreshToken      String
+  refreshTokenGalxe String
+  inviteCode        String?   @map("invite_code")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("tb_parameters")
+}
+
+model Rewards {
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String
+  type           REWARD_TYPE
+  active         Boolean  @default(true)
+  points         Int
+  RewardsHistory RewardsHistory[]
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([id])
+  @@map("tb_rewards")
+}
+
+model RewardsHistory {
+  id               Int      @id @default(autoincrement())
+  providerPlayerId String   @map("provider_player_id")
+  rewardId         Int
+  points           Int
+  rewards          Rewards  @relation(fields: [rewardId], references: [id])
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  availableAt      DateTime @map("available_at")
+
+  @@index([id])
+  @@index([rewardId])
+  @@map("tb_rewards_history")
+}
+
+model Staking {
+  id               Int      @id @default(autoincrement())
+  totalDeposit     Decimal  @db.Decimal(10, 2)
+  currency         String
+  progress         Decimal  @default(0)
+  wallet           String
+  StakingHistory   StakingHistory[]
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([id])
+  @@map("tb_staking")
+}
+
+model StakingHistory {
+  id               Int      @id @default(autoincrement())
+  stakingId        Int
+  txHash           String   @unique
+  tokenDeposit     Decimal  @db.Decimal(10, 2)
+  staking          Staking  @relation(fields: [stakingId], references: [id])
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([id])
+  @@index([txHash])
+  @@index([stakingId])
+  @@map("tb_staking_history")
+}
+
+enum SYSTEM_STATUS {
+  ACTIVE
+  PENDING
+  INACTIVE
+}
+
+enum PLAYER_STATUS {
+  ACTIVE
+  PENDING_PASSWORD
+  PENDING_ACCOUNT
+  PENDING_GALXE
+  BANNED
+}
+
+enum NOTIFICATON_STATUS {
+  ACTIVE
+  DRAFT
+  INACTIVE
+  PENDING
+}
+
+enum NOTIFICATION_TYPE {
+  AUTOMATIC
+  MANUAL
+}
+
+enum AUTOMATIC_NOTIFICATION_TYPE {
+  NEW_CAMPAIGN
+  CAMPAIGN_DEADLINE
+  START_SEASON
+  END_SEASON
+  REWARD
+  TIER
+}
+
+enum REWARD_TYPE {
+  DAILY
+  WEEKLY
+}

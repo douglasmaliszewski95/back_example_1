@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "PLAYER_ORIGIN" AS ENUM ('EMAIL', 'TWITTER', 'DISCORD');
+
+-- AlterTable
+ALTER TABLE "tb_players" ADD COLUMN     "origin" "PLAYER_ORIGIN" NOT NULL DEFAULT 'EMAIL';

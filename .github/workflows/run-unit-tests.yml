@@ -1,0 +1,39 @@
+name: Run Unit Tests
+
+on: pull_request
+
+jobs:
+  run-unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - run: npm install
+      - run: npm run test
+        env: 
+          PORT: 8080
+          INCREDBULL_GALXE_API_BASE_URL: https://incredbull-galxe-api-dev.vercel.app/
+          ACCESS_KEY_ID: 
+          SECRET_ACCESS_KEY: 
+          BUCKET_NAME: incredbull_dev
+          BUCKET_REGION: sa-east-1
+          STORAGE_URL: https://vdirldwosaqsbzhgxylo.supabase.co/storage/v1/s3
+          STORAGE_IMAGE_URL: https://vdirldwosaqsbzhgxylo.supabase.co/storage/v1/object/public
+          SUPABASE_URL: https://vdirldwosaqsbzhgxylo.supabase.co
+          SUPABASE_ANON_KEY: 
+          SUPABASE_SERVICE_ROLE_KEY: 
+          DATABASE_URL: 
+          ADMIN_FRONTEND_BASEURL: https://incredbull-admin-front-dev.vercel.app/
+          PLAYER_FRONTEND_BASEURL: https://incredbull-front-dev.vercel.app
+          DEFAULT_SEASON_DURATION_IN_DAYS: 3
+          DEFAULT_GALXE_TASK_SYSTEM: 494da9b2-9d78-4124-bf04-fc61deb64448
+          DEFAULT_TASK_IMAGE: https://vdirldwosaqsbzhgxylo.supabase.co/storage/v1/object/public/incredbull_dev/reward_point.png
+          DEFAULT_TIER_1_IMAGE: https://vdirldwosaqsbzhgxylo.supabase.co/storage/v1/object/public/incredbull_dev/tier-1-avatar.png
+          DEFAULT_TIER_2_IMAGE: https://vdirldwosaqsbzhgxylo.supabase.co/storage/v1/object/public/incredbull_dev/tier-2-avatar.png
+          DEFAULT_TIER_3_IMAGE: https://vdirldwosaqsbzhgxylo.supabase.co/storage/v1/object/public/incredbull_dev/tier-3-avatar.png
+          DEFAULT_TIME_TO_SEND_ENDING_CAMPAIGN_NOTIFICATION: 2
+          CORS:

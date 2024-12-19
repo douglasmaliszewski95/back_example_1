@@ -1,0 +1,41 @@
+#!/bin/sh
+
+RED=$(printf '\033[0;31m')
+GREEN=$(printf '\033[0;32m')
+BLUE=$(printf '\033[0;34m')
+CYAN=$(printf '\033[0;36m')
+YELLOW=$(printf '\033[0;33m')
+NC=$(printf '\033[0m')
+
+run_command() {
+  echo ""
+  echo "${CYAN}=====================================================${NC}"
+  echo "${CYAN}==${NC} ${YELLOW}Running: $1${NC} ${CYAN}==${NC}"
+  echo "${CYAN}=====================================================${NC}"
+  if eval $1; then
+    echo "${GREEN}=====================================================${NC}"
+    echo "${GREEN}==${NC} ${GREEN}✔ $2 succeeded!${NC} ${GREEN}==${NC}"
+    echo "${GREEN}=====================================================${NC}"
+    echo ""
+  else
+    echo "${RED}=====================================================${NC}"
+    echo "${RED}==${NC} ${RED}✖ $2 failed!${NC} ${RED}==${NC}"
+    echo "${RED}=====================================================${NC}"
+    echo ""
+    exit 1
+  fi
+}
+
+echo ""
+echo "${BLUE}=====================================================${NC}"
+echo "${BLUE}==${NC} ${YELLOW}Starting pre-commit hooks${NC} ${BLUE}==${NC}"
+echo "${BLUE}=====================================================${NC}"
+echo ""
+
+run_command "npm run ts-check" "TypeScript type checking"
+# run_command "npm run lint" "ESLint linting"
+
+echo "${BLUE}=====================================================${NC}"
+echo "${BLUE}==${NC} ${YELLOW}All pre-commit hooks completed successfully!${NC} ${BLUE}==${NC}"
+echo "${BLUE}=====================================================${NC}"
+echo ""

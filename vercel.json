@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "functions": {
+    "api/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/main.ts"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/cron/check-season-cron",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/cron/recalculate-season-tier",
+      "schedule": "0 10 * * *"
+    }
+  ] 
+}
