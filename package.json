@@ -36,7 +36,7 @@
     "@supabase/supabase-js": "2.43.2",
     "ethers": "^6.13.4",
     "@vercel/node": "3.2.1",
-    "axios": "1.7.2",
+    "axios": "1.7.9",
     "csv-parser": "3.0.0",
     "dotenv": "16.4.5",
     "exceljs": "4.4.0",
